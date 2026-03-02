@@ -205,6 +205,13 @@ namespace LibXboxOne.Keys
             return true;
         }
 
+        public static bool LoadCikFromBytes(byte[] keyBytes)
+        {
+            var isNewKey = false;
+            var keyCount = LoadCikKeys(keyBytes, out Guid[] loadedCiks);
+            return keyCount > 0;
+        }
+        
         public static bool LoadKey(KeyType keyType, string keyFilePath)
         {
             if (keyFilePath == String.Empty)

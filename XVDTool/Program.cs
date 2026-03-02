@@ -45,6 +45,7 @@ namespace XVDTool
             var signKeyFilepath = String.Empty;
             var odkFilepath = String.Empty;
             var cikFilepath = String.Empty;
+            var cikData = String.Empty;
 
             bool listKeys = false;
 
@@ -85,6 +86,7 @@ namespace XVDTool
                 { "signfile=", v => signKeyFilepath = v },
                 { "odkfile=", v => odkFilepath = v },
                 { "cikfile=", v => cikFilepath = v },
+                { "cikdata=", v => cikData = v },
 
                 { "sk|signkey=", v => signKeyToUse = v },
                 { "odk|odkid=", v =>
@@ -153,6 +155,7 @@ namespace XVDTool
                 Console.WriteLine(fmt + "-signfile <path-to-file> - Path to xvd sign key (RSA)");
                 Console.WriteLine(fmt + "-odkfile <path-to-file> - Path to Offline Distribution key");
                 Console.WriteLine(fmt + "-cikfile <path-to-file> - Path to Content Instance key");
+                Console.WriteLine(fmt + "-cikdata <data> - Byte data of the Content Instance key");
                 Console.WriteLine();
                 Console.WriteLine(fmt + "-sk (-signkey) <key-name> - Name of xvd sign key to use");
                 Console.WriteLine(fmt + "-odk (-odkid) <id> - Id of Offline Distribution key to use (uint)");
@@ -224,11 +227,20 @@ namespace XVDTool
                 }
             }
 
-            if (cikFilepath != String.Empty)
+            if (cikFilepath != String.Empty && cikData == String.Empty)
             {
                 if (!DurangoKeys.LoadKey(KeyType.Cik, cikFilepath))
                 {
                     Console.WriteLine($"Failed to load CIK from {cikFilepath}");
+                    return;
+                }
+            }
+
+            if (cikFilepath == String.Empty && cikData != String.Empty)
+            {
+                if (!DurangoKeys.LoadCikFromBytes(Convert.FromBase64String(cikData)))
+                {
+                    Console.WriteLine($"Failed to load CIK from hex string {cikData}");
                     return;
                 }
             }
