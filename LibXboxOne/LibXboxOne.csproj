@@ -10,6 +10,7 @@
     <Folder Include="ThirdParty\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.5-beta1" />
     <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />

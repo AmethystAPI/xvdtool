@@ -5,7 +5,9 @@ using System.Linq;
 using NDesk.Options;
 using LibXboxOne;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using LibXboxOne.Keys;
+using Newtonsoft.Json;
 
 // ReSharper disable LocalizableElement
 
@@ -238,7 +240,7 @@ namespace XVDTool
 
             if (cikFilepath == String.Empty && cikData != String.Empty)
             {
-                if (!DurangoKeys.LoadCikFromBytes(Convert.FromBase64String(cikData)))
+                if (!DurangoKeys.LoadCikFromBytes(Convert.FromHexString(cikData)))
                 {
                     Console.WriteLine($"Failed to load CIK from hex string {cikData}");
                     return;
@@ -465,7 +467,10 @@ namespace XVDTool
                     {
                         if (file.IsXvcFile)
                         {
-                            Console.WriteLine("Decrypting XVC...");
+                            Console.WriteLine(JsonConvert.SerializeObject(new
+                            {
+                                message = $"Decrypting {Path.GetFileName(file.FilePath)}..."
+                            }));
                         }
                         else
                         {
@@ -477,8 +482,14 @@ namespace XVDTool
 
                         bool success = file.Decrypt();
                         Console.WriteLine(success
-                            ? "Package decrypted successfully!"
-                            : "Error during decryption!");
+                            ? JsonConvert.SerializeObject(new
+                            {
+                                message = "Package decrypted successfully!"
+                            })
+                            : JsonConvert.SerializeObject(new
+                            {
+                                error = "Error during decryption!"
+                            }));
                         if (!success)
                             return fileModified;
                         fileModified = true;
@@ -652,11 +663,20 @@ namespace XVDTool
                         Console.WriteLine("Warning: -extractfiles failed as package is still encrypted.");
                     else
                     {
-                        Console.WriteLine($"Extracting XVD files to folder \"{fsDest}\"...");
+                        Console.WriteLine(JsonConvert.SerializeObject(new
+                        {
+                            message = $"Extracting {Path.GetFileNameWithoutExtension(file.FilePath)}..."
+                        }));
                         bool success = file.Filesystem.ExtractFilesystem(fsDest);
                         Console.WriteLine(success
-                            ? "Extracted files successfully."
-                            : "Error: there was a problem extracting the files from the XVD.");
+                            ? JsonConvert.SerializeObject(new
+                            {
+                                message = "Extracted files successfully."
+                            })
+                            : JsonConvert.SerializeObject(new
+                            {
+                                error = $"There was a problem extracting files from {Path.GetFileNameWithoutExtension(file.FilePath)}."
+                            }));
                         if (!success)
                             return fileModified;
                     }

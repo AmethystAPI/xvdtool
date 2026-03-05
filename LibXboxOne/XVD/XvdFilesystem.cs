@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Diagnostics;
+using System.Linq;
 using DiscUtils;
 using DiscUtils.Ntfs;
 using DiscUtils.Partitions;
 using DiscUtils.Streams;
+using Newtonsoft.Json;
 
 namespace LibXboxOne
 {
@@ -146,16 +148,28 @@ namespace LibXboxOne
 
         public bool ExtractFilesystem(string outputDirectory, int partitionNumber=0)
         {
-            foreach (var file in IterateFilesystem(partitionNumber))
+            int i = 0;
+            var files = IterateFilesystem(partitionNumber);
+            int fileCount = files.Count();
+            foreach (var file in files)
             {
-                Console.WriteLine(file.DirectoryName + file.Name);
                 /* Assemble destination path and create directory */
-                var destDir = outputDirectory;
+                var destDir = "";
                 var parentDirs = file.DirectoryName.Split('\\');
                 foreach(var pd in parentDirs)
                 {
                     destDir = Path.Combine(destDir, pd);
                 }
+
+                Console.WriteLine(JsonConvert.SerializeObject(new
+                {
+                    message = $"Extracting {Path.Combine(destDir, file.Name)}...",
+                    total = fileCount,
+                    current = i
+                }));
+                i++;
+                
+                destDir = Path.Combine(outputDirectory, destDir);
                 Directory.CreateDirectory(destDir);
                 
                 /* Write out file */

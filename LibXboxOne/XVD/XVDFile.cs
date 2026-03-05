@@ -7,6 +7,7 @@ using System.Text;
 using System.Xml;
 using LibXboxOne.Keys;
 using LibXboxOne.ThirdParty;
+using Newtonsoft.Json;
 
 namespace LibXboxOne
 {
@@ -358,7 +359,10 @@ namespace LibXboxOne
 
             // Perform crypto!
             if (PrintProgressToConsole)
-                Console.WriteLine($"\r\nCrypting section 0x{offset:X} - 0x{offset + length:X} (HeaderId: 0x{headerId:X}):");
+                Console.WriteLine(JsonConvert.SerializeObject(new
+                {
+                    message = $"Decrypting section 0x{offset:X} - 0x{offset + length:X} (HeaderId: 0x{headerId:X})..."
+                }));
 
             _io.Stream.Position = (long)offset;
 
@@ -368,6 +372,11 @@ namespace LibXboxOne
                 {
                     if (PrintProgressToConsole)
                         progress.Report((long)page);
+                    
+                    Console.WriteLine(JsonConvert.SerializeObject(new
+                    {
+                        progress = (float)page / numPages,
+                    }));
 
                     var transformedData = new byte[PAGE_SIZE];
 
@@ -543,11 +552,14 @@ namespace LibXboxOne
             if (IsDataIntegrityEnabled)
             {
                 if (PrintProgressToConsole)
-                    Console.WriteLine("Calculating data hashes:");
+                    Console.WriteLine(JsonConvert.SerializeObject(new
+                    {
+                        message = "Calculating data hashes..."
+                    }));
 
-// ReSharper disable once UnusedVariable
+                // ReSharper disable once UnusedVariable
                 ulong[] invalidBlocks = VerifyDataHashTree(true);
-// ReSharper disable once UnusedVariable
+                // ReSharper disable once UnusedVariable
                 bool hashTreeValid = CalculateHashTree();
             }
 
@@ -889,8 +901,10 @@ namespace LibXboxOne
             {
                 for (ulong i = 0; i < dataBlockCount; i++)
                 {
-                    if (PrintProgressToConsole)
-                        progress.Report((long)i);
+                    Console.WriteLine(JsonConvert.SerializeObject(new
+                    {
+                        progress = (float)i / dataBlockCount,
+                    }));
 
                     var hashEntryOffset = CalculateHashEntryOffsetForBlock(i, 0);
                     _io.Stream.Position = (long)hashEntryOffset;
