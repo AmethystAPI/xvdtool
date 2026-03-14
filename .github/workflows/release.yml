@@ -1,0 +1,38 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0
+      - name: Build
+        run: dotnet build -c Release
+      - name: Test
+        run: dotnet test --no-restore
+      - name: Publish
+        run: dotnet publish --no-restore -c Release -o release /p:"AssemblyVersion=${{ inputs.version }};FileVersion=${{ inputs.version }};InformationalVersion=${{ inputs.version }}"
+      - name: Prepare artifacts
+        run: cp {README,xvd_info,CHANGELOG}.md release
+      - name: Generate zip
+        run: zip -j XVDTool-${{ inputs.version }}.zip release/*
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release v${{ inputs.version }}
+          tag_name: v${{ inputs.version }}
+          generate_release_notes: true
+          files: 'XVDTool-*.zip'
+          fail_on_unmatched_files: true
